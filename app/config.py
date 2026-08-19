@@ -1,0 +1,17 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_URL = os.getenv('BASE_URL')
+
+EVENTS_SOURCE_URL = os.getenv('EVENTS_SOURCE_URL')
+EVENTS_LIMIT = int(os.getenv('EVENTS_LIMIT', 5))
+
+MINIO_HOST = os.getenv('MINIO_HOST')
+MINIO_USER = os.getenv('MINIO_USER')
+MINIO_PASSWORD = os.getenv('MINIO_PASSWORD')
+
+MINIO_EVENTS_BUCKET_NAME = os.getenv('MINIO_EVENTS_BUCKET_NAME')
+MINIO_MATCHES_BUCKET_NAME = os.getenv('MINIO_MATCHES_BUCKET_NAME')
+MINIO_STATISTICS_BUCKET_NAME = os.getenv('MINIO_STATISTICS_BUCKET_NAME')
