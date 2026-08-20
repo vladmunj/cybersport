@@ -1,2 +1,4 @@
 .env
-minio/data/*
+__pycache__/
+.idea/
+minio/data/
