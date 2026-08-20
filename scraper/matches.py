@@ -1,7 +1,7 @@
 from app.config import (MINIO_EVENTS_BUCKET_NAME, BASE_URL,
                         MINIO_MATCHES_BUCKET_NAME)
 from services.minio_client import MinioClient
-from services.objects import events_object_name, matches_object_name
+from services.objects import get_events_object_name, get_matches_object_name
 import requests as req
 from bs4 import BeautifulSoup as bs
 from datetime import datetime
@@ -9,9 +9,12 @@ from datetime import datetime
 MATCHES_CLASS_VALUE="battleRoyale_"
 
 def main():
-    events_object_name = events_object_name()
+    events_object_name = get_events_object_name()
     minio_client = MinioClient()
-    events = minio_client.get_json(MINIO_EVENTS_BUCKET_NAME, events_object_name)
+    events = minio_client.get_json(
+        MINIO_EVENTS_BUCKET_NAME,
+        events_object_name
+    )
     for event in events:
         response = req.get(event['link'])
         soup = bs(response.text, 'html.parser')
@@ -42,7 +45,7 @@ def main():
             object_name_date = (datetime
                                 .strptime(date, '%d.%m.%y в %H:%M')
                                 .strftime('%Y-%m-%d'))
-            match_object_name = matches_object_name(
+            match_object_name = get_matches_object_name(
                 event['title'].replace(' ', '_'),
                 object_name_date,
                 team1 + "_vs_" + team2

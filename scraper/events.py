@@ -4,7 +4,7 @@ from app.config import (
 import requests as req
 from bs4 import BeautifulSoup as bs
 from services.minio_client import MinioClient
-from services.objects import events_object_name
+from services.objects import get_events_object_name
 
 EVENTS_CLASS_NAME_VALUE="article_"
 
@@ -22,7 +22,7 @@ def main():
             'link': link,
             'date': date
         })
-    object_name = events_object_name()
+    object_name = get_events_object_name()
     minio_client = MinioClient()
     minio_client.upload_json(MINIO_EVENTS_BUCKET_NAME, events_data, object_name)
 
