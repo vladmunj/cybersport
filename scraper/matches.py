@@ -2,38 +2,42 @@ from app.config import (MINIO_EVENTS_BUCKET_NAME, BASE_URL,
                         MINIO_MATCHES_BUCKET_NAME)
 from services.minio_client import MinioClient
 from services.objects import get_events_object_name, get_matches_object_name
-from bs4 import BeautifulSoup as bs
 from datetime import datetime
 from services.http import http_req
+from services.crawler import Crawler
 
 MATCHES_CLASS_VALUE="battleRoyale_"
 
-def main():
-    events_object_name = get_events_object_name()
+def scrape_matches():
     minio_client = MinioClient()
-    events = minio_client.get_json(
+    events = __get_events(minio_client)
+    __get_matches(events, minio_client)
+
+def __get_events(minio_client):
+    events_object_name = get_events_object_name()
+    return minio_client.get_json(
         MINIO_EVENTS_BUCKET_NAME,
         events_object_name
     )
+
+def __get_matches(events, minio_client):
     for event in events:
         response = http_req(event['link'])
-        soup = bs(response.text, 'html.parser')
-        matches = soup.select(f'[class*="{MATCHES_CLASS_VALUE}"]')
+        matches = Crawler.root_select(response.text, f'[class*="{MATCHES_CLASS_VALUE}"]')
         for match in matches:
-            date = match.select_one('[class^="date_"]').text
-            team1 = match.select_one(
-                '[class*="participant1_"] [class^="titleWrapper_"] [class^="title_"]'
-            ).text
-            team2 = match.select_one(
-                '[class*="participant2_"] [class^="titleWrapper_"] [class^="title_"]'
-            ).text
-            score_block = match.select_one('[class^="score_"]')
+            date = Crawler.text(match, '[class^="date_"]')
+            team1 = Crawler.text(match, '[class*="participant1_"] [class^="titleWrapper_"] [class^="title_"]')
+            team2 = Crawler.text(match, '[class*="participant2_"] [class^="titleWrapper_"] [class^="title_"]')
+            score_block = Crawler.select_one(match, '[class^="score_"]')
             score = ''.join(
                 value.get_text(strip=True)
-                for value in score_block.select('span')
+                for value in Crawler.select(score_block,'span')
             )
             link = (BASE_URL.rstrip('/') + '/'
-                    + match.select_one('[class^="matchLink_"]').attrs['href'].lstrip('/'))
+                    + Crawler.get(
+                        match.select_one('[class^="matchLink_"]').attrs['href'],
+                        'Element with class matching [class^="matchLink_"] and href attr not found'
+                    ).lstrip('/'))
             matches_data = {
                 'date': date,
                 'team1': team1,
@@ -42,18 +46,21 @@ def main():
                 'link': link,
                 'title': event['title']
             }
-            object_name_date = (datetime
-                                .strptime(date, '%d.%m.%y в %H:%M')
-                                .strftime('%Y-%m-%d'))
-            match_object_name = get_matches_object_name(
-                event['title'].replace(' ', '_'),
-                object_name_date,
-                team1 + "_vs_" + team2
-            )
-            minio_client.upload_json(
-                MINIO_MATCHES_BUCKET_NAME,
-                matches_data,
-                match_object_name
-            )
+            __upload_matches(event, minio_client, matches_data)
 
-if __name__ == "__main__": main()
+def __upload_matches(event, minio_client, matches_data):
+    object_name_date = (datetime
+                        .strptime(matches_data['date'], '%d.%m.%y в %H:%M')
+                        .strftime('%Y-%m-%d'))
+    match_object_name = get_matches_object_name(
+        event['title'].replace(' ', '_'),
+        object_name_date,
+        matches_data['team1'] + "_vs_" + matches_data['team2']
+    )
+    minio_client.upload_json(
+        MINIO_MATCHES_BUCKET_NAME,
+        matches_data,
+        match_object_name
+    )
+
+if __name__ == "__main__": scrape_matches()

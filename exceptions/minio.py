@@ -1,0 +1,2 @@
+class MinioException(Exception):
+    pass
