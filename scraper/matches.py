@@ -2,9 +2,9 @@ from app.config import (MINIO_EVENTS_BUCKET_NAME, BASE_URL,
                         MINIO_MATCHES_BUCKET_NAME)
 from services.minio_client import MinioClient
 from services.objects import get_events_object_name, get_matches_object_name
-import requests as req
 from bs4 import BeautifulSoup as bs
 from datetime import datetime
+from services.http import http_req
 
 MATCHES_CLASS_VALUE="battleRoyale_"
 
@@ -16,7 +16,7 @@ def main():
         events_object_name
     )
     for event in events:
-        response = req.get(event['link'])
+        response = http_req(event['link'])
         soup = bs(response.text, 'html.parser')
         matches = soup.select(f'[class*="{MATCHES_CLASS_VALUE}"]')
         for match in matches:

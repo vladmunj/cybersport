@@ -1,15 +1,15 @@
 from app.config import (
     BASE_URL, EVENTS_SOURCE_URL, EVENTS_LIMIT,
     MINIO_EVENTS_BUCKET_NAME)
-import requests as req
 from bs4 import BeautifulSoup as bs
 from services.minio_client import MinioClient
 from services.objects import get_events_object_name
+from services.http import http_req
 
 EVENTS_CLASS_NAME_VALUE="article_"
 
 def main():
-    response = req.get(EVENTS_SOURCE_URL)
+    response = http_req(EVENTS_SOURCE_URL)
     soup = bs(response.text, 'html.parser')
     events = soup.select(f'[class^="{EVENTS_CLASS_NAME_VALUE}"]', limit=EVENTS_LIMIT)
     events_data = []

@@ -1,8 +1,8 @@
 from datetime import datetime
 from app.config import (MINIO_MATCHES_BUCKET_NAME, MINIO_STATISTICS_BUCKET_NAME)
 from services.minio_client import MinioClient
-import requests as req
 from bs4 import BeautifulSoup as bs
+from services.http import http_req
 
 def get_players_info(data):
     players_info = []
@@ -23,7 +23,7 @@ def main():
     matches = minio_client.objects_list(MINIO_MATCHES_BUCKET_NAME, object_date + "/")
     for match in matches:
         match_data = minio_client.get_json(MINIO_MATCHES_BUCKET_NAME, match.object_name)
-        response = req.get(match_data['link'])
+        response = http_req(match_data['link'])
         soup = bs(response.text, 'html.parser')
         teams = soup.select('[class^="teamPlayersList_"]')
         team1_data = get_players_info(teams[0])
