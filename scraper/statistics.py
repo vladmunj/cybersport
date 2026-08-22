@@ -53,7 +53,7 @@ def __get_stats(minio_client, matches):
                 'team2': team2_title,
                 'score': score
             })
-            __upload_match_info(minio_client, match, match_data, maps_data, team1_data, team2_data)
+        __upload_match_info(minio_client, match, match_data, maps_data, team1_data, team2_data)
 
 def __upload_match_info(minio_client, match,
                         match_data, maps_data, team1_data, team2_data):
