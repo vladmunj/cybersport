@@ -11,7 +11,8 @@ MATCHES_CLASS_VALUE="battleRoyale_"
 def scrape_matches():
     minio_client = MinioClient()
     events = __get_events(minio_client)
-    __get_matches(events, minio_client)
+    for match_data in __get_matches(events, minio_client):
+        __upload_match(minio_client, match_data)
 
 def __get_events(minio_client):
     events_object_name = get_events_object_name()
@@ -38,7 +39,7 @@ def __get_matches(events, minio_client):
                         match.select_one('[class^="matchLink_"]').attrs['href'],
                         'Element with class matching [class^="matchLink_"] and href attr not found'
                     ).lstrip('/'))
-            matches_data = {
+            yield {
                 'date': date,
                 'team1': team1,
                 'team2': team2,
@@ -46,14 +47,13 @@ def __get_matches(events, minio_client):
                 'link': link,
                 'title': event['title']
             }
-            __upload_matches(event, minio_client, matches_data)
 
-def __upload_matches(event, minio_client, matches_data):
+def __upload_match(minio_client, matches_data):
     object_name_date = (datetime
                         .strptime(matches_data['date'], '%d.%m.%y в %H:%M')
                         .strftime('%Y-%m-%d'))
     match_object_name = get_matches_object_name(
-        event['title'].replace(' ', '_'),
+        matches_data['title'].replace(' ', '_'),
         object_name_date,
         matches_data['team1'] + "_vs_" + matches_data['team2']
     )

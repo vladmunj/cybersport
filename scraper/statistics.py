@@ -1,5 +1,6 @@
 from datetime import datetime
 from app.config import (MINIO_MATCHES_BUCKET_NAME, MINIO_STATISTICS_BUCKET_NAME)
+from exceptions.crawl import CrawlException
 from services.minio_client import MinioClient
 from services.http import http_req
 from services.crawler import Crawler
@@ -20,30 +21,32 @@ def get_players_info(data):
 def scrape_statistics():
     minio_client = MinioClient()
     matches = __get_matches(minio_client)
-    __get_stats(minio_client, matches)
+    __process_stats(minio_client, matches)
 
 def __get_matches(minio_client):
     object_date = datetime.now().strftime('%Y-%m-%d')
     return minio_client.objects_list(MINIO_MATCHES_BUCKET_NAME, object_date + "/")
 
-def __get_stats(minio_client, matches):
+def __process_stats(minio_client, matches):
     for match in matches:
         match_data = minio_client.get_json(MINIO_MATCHES_BUCKET_NAME, match.object_name)
         response = http_req(match_data['link'])
         teams = Crawler.root_select(response.text, '[class^="teamPlayersList_"]')
+        if len(teams) != 2:
+            raise CrawlException({'error': f'Expected 2 teams, got {len(teams)}'})
         team1_data = get_players_info(teams[0])
         team2_data = get_players_info(teams[1])
         maps = Crawler.root_select(response.text, '[class="scgo-stat"] [class^="card_"]')
         maps_data = []
-        for map in maps:
-            map_name = Crawler.text(map, '[class^="mapTitle_"]')
-            participants = Crawler.select(map, '[class^="participantTitle_"]')
+        for map_info in maps:
+            map_name = Crawler.text(map_info, '[class^="mapTitle_"]')
+            participants = Crawler.select(map_info, '[class^="participantTitle_"]')
             team1_title = participants[0].text
             team2_title = participants[1].text
             score = ':'.join(
                 score_val.get_text(strip=True)
                 for score_val in Crawler.select(
-                    map,
+                    map_info,
                     '[class^="matchScore_"] [class^="score_"] span'
                 )
             )

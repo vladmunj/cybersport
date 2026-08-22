@@ -41,7 +41,7 @@ class Crawler:
 
     @staticmethod
     def attr(element, attr, required = True):
-        attribute = element.attrs[attr]
+        attribute = element.attrs.get(attr)
         if not attribute:
             if required:
                 raise CrawlException({'error': f'element\'s attribute {attr} not found'})
