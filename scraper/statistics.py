@@ -41,8 +41,10 @@ def __process_stats(minio_client, matches):
         for map_info in maps:
             map_name = Crawler.text(map_info, '[class^="mapTitle_"]')
             participants = Crawler.select(map_info, '[class^="participantTitle_"]')
-            team1_title = participants[0].text
-            team2_title = participants[1].text
+            if len(participants) != 2:
+                raise CrawlException(f'Expected 2 participants, got {len(participants)}')
+            team1_title = participants[0].get_text(strip = True)
+            team2_title = participants[1].get_text(strip = True)
             score = ':'.join(
                 score_val.get_text(strip=True)
                 for score_val in Crawler.select(

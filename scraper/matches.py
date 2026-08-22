@@ -11,7 +11,7 @@ MATCHES_CLASS_VALUE="battleRoyale_"
 def scrape_matches():
     minio_client = MinioClient()
     events = __get_events(minio_client)
-    for match_data in __get_matches(events, minio_client):
+    for match_data in __get_matches(events):
         __upload_match(minio_client, match_data)
 
 def __get_events(minio_client):
@@ -21,7 +21,7 @@ def __get_events(minio_client):
         events_object_name
     )
 
-def __get_matches(events, minio_client):
+def __get_matches(events):
     for event in events:
         response = http_req(event['link'])
         matches = Crawler.root_select(response.text, f'[class*="{MATCHES_CLASS_VALUE}"]')
@@ -34,11 +34,7 @@ def __get_matches(events, minio_client):
                 value.get_text(strip=True)
                 for value in Crawler.select(score_block,'span')
             )
-            link = (BASE_URL.rstrip('/') + '/'
-                    + Crawler.get(
-                        match.select_one('[class^="matchLink_"]').attrs['href'],
-                        'Element with class matching [class^="matchLink_"] and href attr not found'
-                    ).lstrip('/'))
+            link = __get_match_link(match)
             yield {
                 'date': date,
                 'team1': team1,
@@ -47,6 +43,11 @@ def __get_matches(events, minio_client):
                 'link': link,
                 'title': event['title']
             }
+
+def __get_match_link(match):
+    match_link_el = Crawler.select_one(match, '[class^="matchLink_"]')
+    link_attr = Crawler.attr(match_link_el, 'href')
+    return BASE_URL.rstrip('/') + '/' + link_attr.lstrip('/')
 
 def __upload_match(minio_client, matches_data):
     object_name_date = (datetime

@@ -47,9 +47,3 @@ class Crawler:
                 raise CrawlException({'error': f'element\'s attribute {attr} not found'})
             return None
         return attribute
-
-    @staticmethod
-    def get(element, message):
-        if element is None:
-            raise CrawlException({'error': message})
-        return element
