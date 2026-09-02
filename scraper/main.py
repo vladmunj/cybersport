@@ -23,7 +23,7 @@ def __sentry_init():
         environment=SENTRY_ENVIRONMENT,
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE
     )
-    snapshot_date = datetime.datetime.now().strftime('%Y%m%d')
+    snapshot_date = datetime.datetime.now().strftime('%Y-%m-%d')
     sentry_sdk.set_tag('snapshot_date', snapshot_date)
 
 def main():
