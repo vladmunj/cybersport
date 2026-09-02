@@ -5,14 +5,7 @@ from scraper.matches import scrape_matches
 from scraper.statistics import scrape_statistics
 from services.logger import Logger
 
-def alert(logger, error, frame):
-    logger.error({
-        'error': error,
-        'filename': frame.filename,
-        'line': frame.lineno,
-        'code': frame.line,
-        'function': frame.name
-    })
+def alert(error, frame):
     print(f'ALERT: {error}, '
           f'filename: {frame.filename}, '
           f'line: {frame.lineno}, '
@@ -29,7 +22,8 @@ def main():
     except Exception as e:
         tb = traceback.extract_tb(e.__traceback__)
         frame = tb[-1]
-        alert(__logger, e, frame)
+        alert(e, frame)
         __logger.exception(e)
+        raise
 
 if __name__ == '__main__': main()

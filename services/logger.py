@@ -11,6 +11,7 @@ class Logger:
 
     def __logFileName(self):
         path = root_path() / "logs"
+        path.mkdir(parents=True, exist_ok=True)
         filename = datetime.now().strftime('%Y%m%d') + '.log'
         return path / filename
 
