@@ -5,5 +5,3 @@ minio/data/*
 !minio/data/.gitkeep
 logs/*
 !logs/.gitkeep
-postgres/data/*
-!postgres/data.gitkeep
