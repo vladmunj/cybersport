@@ -36,4 +36,4 @@ services:
     volumes:
       - cybersport_postgres_data:/var/lib/postgresql/data
 volumes:
-  - cybersport_postgres_data:
+  cybersport_postgres_data:
