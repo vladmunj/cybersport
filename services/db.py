@@ -20,7 +20,7 @@ class Db:
             db_url,
             pool_pre_ping=True,
         )
-        self.Session = sessionmaker(
+        self.session_factory = sessionmaker(
             bind=self.engine,
             autoflush=False,
             autocommit=False,
