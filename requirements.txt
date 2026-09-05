@@ -3,3 +3,6 @@ minio
 python-dotenv
 requests
 sentry-sdk
+SQLAlchemy
+alembic
+psycopg[binary]
