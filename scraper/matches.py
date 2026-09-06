@@ -5,6 +5,7 @@ from services.objects import get_events_object_name, get_matches_object_name
 from datetime import datetime
 from services.http import http_req
 from services.crawler import Crawler
+from services.url import extract_match_id
 
 MATCHES_CLASS_VALUE="battleRoyale_"
 
@@ -35,12 +36,14 @@ def __get_matches(events):
                 for value in Crawler.select(score_block,'span')
             )
             link = __get_match_link(match)
+            match_id = extract_match_id(link)
             yield {
                 'date': date,
                 'team1': team1,
                 'team2': team2,
                 'score': score,
                 'link': link,
+                'id': match_id,
                 'title': event['title']
             }
 

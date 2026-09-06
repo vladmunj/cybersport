@@ -6,3 +6,5 @@ COPY app ./app
 COPY scraper ./scraper
 COPY services ./services
 COPY exceptions ./exceptions
+COPY scripts ./scripts
+RUN chmod +x ./scripts/*

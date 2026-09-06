@@ -63,7 +63,7 @@ def __process_stats(minio_client, matches):
 def __upload_match_info(minio_client, match,
                         match_data, maps_data, team1_data, team2_data):
     match_info = {
-        'match_name': match_data['title'],
+        'match_id': match_data['id'],
         'opposing_teams': match_data['team1'] + ' vs ' + match_data['team2'],
         'teams': {
             match_data['team1']: {
