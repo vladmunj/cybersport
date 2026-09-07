@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
 
 class MatchMap(Base):
-    __tablename__ = "maps"
+    __tablename__ = "match_maps"
     id: Mapped[int] = mapped_column(
         primary_key=True
     )

@@ -13,7 +13,7 @@ def http_req(url):
         return response
     except HTTPError as err:
         raise HttpException(err) from err
-    except Exception as err:
-        raise HttpException(err) from err
     except RequestException as err:
+        raise HttpException(err) from err
+    except Exception as err:
         raise HttpException(err) from err

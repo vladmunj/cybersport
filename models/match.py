@@ -46,7 +46,7 @@ class Match(Base):
     event: Mapped["Event"] = relationship(
         back_populates="matches"
     )
-    maps: Mapped[list["Map"]] = relationship(
+    maps: Mapped[list["MatchMap"]] = relationship(
         back_populates="match",
         cascade="all, delete-orphan"
     )
