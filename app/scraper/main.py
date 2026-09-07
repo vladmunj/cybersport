@@ -4,9 +4,9 @@ import sentry_sdk
 from app.config import (
     SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_TRACES_SAMPLE_RATE)
 
-from scraper.events import scrape_events
-from scraper.matches import scrape_matches
-from scraper.statistics import scrape_statistics
+from app.scraper.events import scrape_events
+from app.scraper.matches import scrape_matches
+from app.scraper.statistics import scrape_statistics
 from services.logger import Logger
 
 def alert(error, frame):
