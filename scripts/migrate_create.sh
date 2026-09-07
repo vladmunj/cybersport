@@ -16,6 +16,4 @@ if find "$MIGRATIONS_DIR" -type f -name "*_${SLUG}.py" | grep -q .; then
 fi
 echo "Creating migration: $MIGRATION_NAME"
 alembic revision --autogenerate -m "$MIGRATION_NAME"
-echo "Applying migration..."
-alembic upgrade head
 echo "Migration completed successfully."
