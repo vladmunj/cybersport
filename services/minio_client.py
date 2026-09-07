@@ -40,6 +40,7 @@ class MinioClient:
     def get_json(self, bucket_name, object_name):
         try:
             response = self.client.get_object(bucket_name, object_name)
+            self.client.close()
         except Exception as e:
             raise MinioException(e) from e
         return json_load(response)

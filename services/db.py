@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 from app.config import (
     POSTGRES_HOST,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB
@@ -15,7 +16,7 @@ class Db:
     def __init__(self):
         if hasattr(self, "_initialized"): return
         self._initialized = True
-        db_url = self.__init_db_url()
+        db_url = self.get_db_url()
         self.engine = create_engine(
             db_url,
             pool_pre_ping=True,
@@ -26,9 +27,13 @@ class Db:
             autocommit=False,
         )
 
-    def __init_db_url(self):
-        return (
-            f"postgresql+psycopg://"
-            f"{POSTGRES_USER}:{POSTGRES_PASSWORD}"
-            f"@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    @staticmethod
+    def get_db_url():
+        return URL.create(
+            "postgresql+psycopg",
+            username=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            database=POSTGRES_DB,
         )

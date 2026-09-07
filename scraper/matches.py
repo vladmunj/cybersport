@@ -52,18 +52,18 @@ def __get_match_link(match):
     link_attr = Crawler.attr(match_link_el, 'href')
     return BASE_URL.rstrip('/') + '/' + link_attr.lstrip('/')
 
-def __upload_match(minio_client, matches_data):
+def __upload_match(minio_client, match_data):
     object_name_date = (datetime
-                        .strptime(matches_data['date'], '%d.%m.%y в %H:%M')
+                        .strptime(match_data['date'], '%d.%m.%y в %H:%M')
                         .strftime('%Y-%m-%d'))
     match_object_name = get_matches_object_name(
-        matches_data['title'].replace(' ', '_'),
+        match_data['title'].replace(' ', '_'),
         object_name_date,
-        matches_data['team1'] + "_vs_" + matches_data['team2']
+        match_data['team1'] + "_vs_" + match_data['team2'] + f"[{match_data['id']}]"
     )
     minio_client.upload_json(
         MINIO_MATCHES_BUCKET_NAME,
-        matches_data,
+        match_data,
         match_object_name
     )
 

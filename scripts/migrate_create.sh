@@ -2,10 +2,10 @@
 set -e
 MIGRATIONS_DIR="migrations/versions"
 if [ -z "$1" ]; then
-    echo "Usage: ./migrate.sh \"table name\""
+    echo "Usage: ./migrate.sh \"migration name\""
     exit 1
 fi
-MIGRATION_NAME="create $1 table"
+MIGRATION_NAME="$1"
 SLUG=$(echo "$MIGRATION_NAME" \
     | tr '[:upper:]' '[:lower:]' \
     | sed 's/ /_/g')
