@@ -46,6 +46,26 @@ class Db:
         return cls._session_factory()
 
     @staticmethod
+    def _instance(
+            session,
+            model: Type[Any],
+            data: dict[str, Any],
+            key: str
+    ):
+        instance = session.scalar(
+            select(model).where(
+                getattr(model, key) == data[key]
+            )
+        )
+        if instance is None:
+            instance = model(**data)
+            session.add(instance)
+        else:
+            for field, value in data.items():
+                setattr(instance, field, value)
+        return instance
+
+    @staticmethod
     def save(
             model: Type[Any],
             data: dict[str, Any],
@@ -57,21 +77,48 @@ class Db:
             )
         session = Db._get_session()
         try:
-            instance = session.scalar(
-                select(model).where(
-                    getattr(model, key) == data[key]
-                )
+            instance = Db._instance(
+                session,
+                model,
+                data,
+                key
             )
-            if instance is None:
-                instance = model(**data)
-                session.add(instance)
-            else:
-                for field, value in data.items():
-                    setattr(instance, field, value)
             session.commit()
             session.refresh(instance)
             return instance
         except Exception as e:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    @staticmethod
+    def save_many(
+            records: list[dict[str, Any]],
+    ) -> list[Any]:
+        session = Db._get_session()
+        result = []
+        try:
+            for record in records:
+                model = record['model']
+                data = record['data']
+                key = record['key']
+                if key not in data:
+                    raise ValueError(
+                        f"Key '{key}' not found in data for model '{model.__name__}'"
+                    )
+                instance = Db._instance(
+                    session,
+                    model,
+                    data,
+                    key
+                )
+                result.append(instance)
+            session.commit()
+            for instance in result:
+                session.refresh(instance)
+            return result
+        except Exception:
             session.rollback()
             raise
         finally:
