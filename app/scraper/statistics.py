@@ -78,7 +78,7 @@ def __upload_match_info(minio_client, match,
     minio_client.upload_json(
         MINIO_STATISTICS_BUCKET_NAME,
         match_info,
-        match.object_name.replace('.json', '_statistics.json')
+        match.object_name
     )
 
 if __name__ == '__main__': scrape_statistics()

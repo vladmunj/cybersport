@@ -5,6 +5,7 @@ from services.minio_client import MinioClient
 from services.objects import get_events_object_name
 from services.http import http_req
 from services.crawler import Crawler
+from services.url import extract_event_slug
 
 EVENTS_CLASS_NAME_VALUE="article_"
 
@@ -26,11 +27,13 @@ def __parse_events_data(events):
     for event in events:
         href = Crawler.attr(event, 'href')
         link = BASE_URL.rstrip('/') + '/' + href.lstrip('/')
+        event_slug = extract_event_slug(link)
         title = Crawler.text(event, '[class^="title_"]')
         date = Crawler.text(event, '[class^="info_"] [class^="group_"] [class^="value_"]')
         events_data.append({
             'title': title,
             'link': link,
+            'slug': event_slug,
             'date': date
         })
     return events_data

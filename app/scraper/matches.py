@@ -44,7 +44,7 @@ def __get_matches(events):
                 'score': score,
                 'link': link,
                 'id': match_id,
-                'title': event['title']
+                'slug': event['slug']
             }
 
 def __get_match_link(match):
@@ -57,9 +57,8 @@ def __upload_match(minio_client, match_data):
                         .strptime(match_data['date'], '%d.%m.%y в %H:%M')
                         .strftime('%Y-%m-%d'))
     match_object_name = get_matches_object_name(
-        match_data['title'].replace(' ', '_'),
-        object_name_date,
-        match_data['team1'] + "_vs_" + match_data['team2'] + f"[{match_data['id']}]"
+        match_data['slug'],
+        match_data['id']
     )
     minio_client.upload_json(
         MINIO_MATCHES_BUCKET_NAME,

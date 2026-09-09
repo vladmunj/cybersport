@@ -8,6 +8,11 @@ class Event(Base):
     id: Mapped[int] = mapped_column(
         primary_key=True,
     )
+    slug: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        index=True
+    )
     title: Mapped[str] = mapped_column(
         Text,
         nullable=False,
