@@ -1,26 +1,19 @@
-from app.config import (MINIO_EVENTS_BUCKET_NAME, BASE_URL,
+from app.config import (BASE_URL,
                         MINIO_MATCHES_BUCKET_NAME)
 from services.minio_client import MinioClient
-from services.objects import get_events_object_name, get_matches_object_name
-from datetime import datetime
+from services.objects import get_matches_object_name
 from services.http import http_req
 from services.crawler import Crawler
 from services.url import extract_match_id
+from services.events import events_load
 
 MATCHES_CLASS_VALUE="battleRoyale_"
 
 def scrape_matches():
     minio_client = MinioClient()
-    events = __get_events(minio_client)
+    events = events_load(minio_client)
     for match_data in __get_matches(events):
         __upload_match(minio_client, match_data)
-
-def __get_events(minio_client):
-    events_object_name = get_events_object_name()
-    return minio_client.get_json(
-        MINIO_EVENTS_BUCKET_NAME,
-        events_object_name
-    )
 
 def __get_matches(events):
     for event in events:
@@ -53,9 +46,6 @@ def __get_match_link(match):
     return BASE_URL.rstrip('/') + '/' + link_attr.lstrip('/')
 
 def __upload_match(minio_client, match_data):
-    object_name_date = (datetime
-                        .strptime(match_data['date'], '%d.%m.%y в %H:%M')
-                        .strftime('%Y-%m-%d'))
     match_object_name = get_matches_object_name(
         match_data['slug'],
         match_data['id']

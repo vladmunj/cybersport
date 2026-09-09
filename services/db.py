@@ -1,12 +1,15 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 from app.config import (
     POSTGRES_HOST,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB
 )
+from typing import Any, Type
 
 class Db:
     __instance = None
+    _engine = None
+    _session_factory = None
 
     def __new__(cls):
         if cls.__instance is None:
@@ -16,16 +19,6 @@ class Db:
     def __init__(self):
         if hasattr(self, "_initialized"): return
         self._initialized = True
-        db_url = self.get_db_url()
-        self.engine = create_engine(
-            db_url,
-            pool_pre_ping=True,
-        )
-        self.session_factory = sessionmaker(
-            bind=self.engine,
-            autoflush=False,
-            autocommit=False,
-        )
 
     @staticmethod
     def get_db_url():
@@ -37,3 +30,49 @@ class Db:
             port=POSTGRES_PORT,
             database=POSTGRES_DB,
         )
+
+    @classmethod
+    def _get_session(cls):
+        if cls._session_factory is None:
+            cls._engine = create_engine(
+                cls.get_db_url(),
+                pool_pre_ping=True,
+            )
+            cls._session_factory = sessionmaker(
+                bind=cls._engine,
+                autoflush=False,
+                autocommit=False,
+            )
+        return cls._session_factory()
+
+    @staticmethod
+    def save(
+            model: Type[Any],
+            data: dict[str, Any],
+            key: str
+    ) -> Any:
+        if key not in data:
+            raise ValueError(
+                f"Key '{key}' not found in data for model '{model.__name__}'"
+            )
+        session = Db._get_session()
+        try:
+            instance = session.scalar(
+                select(model).where(
+                    getattr(model, key) == data[key]
+                )
+            )
+            if instance is None:
+                instance = model(**data)
+                session.add(instance)
+            else:
+                for field, value in data.items():
+                    setattr(instance, field, value)
+            session.commit()
+            session.refresh(instance)
+            return instance
+        except Exception as e:
+            session.rollback()
+            raise
+        finally:
+            session.close()
