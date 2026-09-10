@@ -4,6 +4,7 @@ from exceptions.crawl import CrawlException
 from services.minio_client import MinioClient
 from services.http import http_req
 from services.crawler import Crawler
+from services.matches import matches_load
 
 def get_players_info(data):
     players_info = []
@@ -20,12 +21,8 @@ def get_players_info(data):
 
 def scrape_statistics():
     minio_client = MinioClient()
-    matches = __get_matches(minio_client)
+    matches = matches_load(minio_client)
     __process_stats(minio_client, matches)
-
-def __get_matches(minio_client):
-    object_date = datetime.now().strftime('%Y-%m-%d')
-    return minio_client.objects_list(MINIO_MATCHES_BUCKET_NAME, object_date + "/")
 
 def __process_stats(minio_client, matches):
     for match in matches:

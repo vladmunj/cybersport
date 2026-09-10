@@ -1,5 +1,5 @@
-from datetime import date
-from sqlalchemy import Date, Text
+from datetime import date, datetime
+from sqlalchemy import Date, Text, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
 
@@ -27,6 +27,11 @@ class Event(Base):
     )
     end_date: Mapped[date] = mapped_column(
         Date,
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
         nullable=False,
     )
     matches: Mapped[list["Match"]] = relationship(

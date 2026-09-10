@@ -39,10 +39,6 @@ class Match(Base):
         Text,
         nullable=False
     )
-    title: Mapped[str] = mapped_column(
-        Text,
-        nullable=False
-    )
     event: Mapped["Event"] = relationship(
         back_populates="matches"
     )
