@@ -21,7 +21,7 @@ class Match(Base):
     )
     date: Mapped[datetime] = mapped_column(
         DateTime,
-        nullable=False
+        nullable=True
     )
     team1: Mapped[str] = mapped_column(
         Text,

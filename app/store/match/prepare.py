@@ -18,8 +18,8 @@ def matches_prepare():
                 match_data["date"],
                 "%d.%m.%y в %H:%M"
                 ).strftime('%Y-%m-%d %H:%M:%S')
-        except Exception:
-            date_formatted = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            date_formatted = None
         match_slugs.add(match_data["slug"])
         matches_data.append({
             'external_id': match_data['id'],
