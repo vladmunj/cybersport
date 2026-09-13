@@ -1,6 +1,8 @@
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
+from models.maps import Map
+
 
 class MatchMap(Base):
     __tablename__ = "match_maps"
@@ -12,17 +14,10 @@ class MatchMap(Base):
         nullable=False,
         index=True
     )
-    map_name: Mapped[str] = mapped_column(
-        String(50),
-        nullable=False
-    )
-    team1: Mapped[str] = mapped_column(
-        Text,
-        nullable=False
-    )
-    team2: Mapped[str] = mapped_column(
-        Text,
-        nullable=False
+    map_id: Mapped[int] = mapped_column(
+        ForeignKey("maps.id"),
+        nullable=False,
+        index=True
     )
     score: Mapped[str] = mapped_column(
         String(10),
@@ -30,4 +25,7 @@ class MatchMap(Base):
     )
     match: Mapped["Match"] = relationship(
         back_populates="maps"
+    )
+    map: Mapped["Map"] = relationship(
+        back_populates="matches"
     )

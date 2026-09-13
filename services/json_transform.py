@@ -16,3 +16,10 @@ def json_load(data):
         return json.load(data)
     except Exception as e:
         raise JsonException(e) from e
+
+def json_load_from_file(path):
+    try:
+        with open(path,'r',encoding='utf-8') as file:
+            return json_load(file)
+    except Exception as e:
+        raise JsonException(e) from e

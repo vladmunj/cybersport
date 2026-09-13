@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from services.json_transform import json_load_from_file
 
 load_dotenv()
 
@@ -27,3 +28,5 @@ POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', 5432))
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
+
+MAP_POOL_LIST = json_load_from_file("./app/config/map_pool.json")

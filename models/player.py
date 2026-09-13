@@ -1,4 +1,4 @@
-from sqlalchemy import Text, String
+from sqlalchemy import Text, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
 
@@ -15,6 +15,14 @@ class Player(Base):
     fullname: Mapped[str] = mapped_column(
         Text,
         nullable=False
+    )
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id"),
+        nullable=False,
+        index=True
+    )
+    team: Mapped["Team"] = relationship(
+        back_populates="players",
     )
     statistics: Mapped[list["Statistic"]] = relationship(
         back_populates="player",

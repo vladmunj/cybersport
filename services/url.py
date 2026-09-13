@@ -11,3 +11,6 @@ def extract_event_slug(url: str) -> str:
     path = urlsplit(url).path
     event_slug = path.rstrip("/").split("/")[-1].replace("-", "_")
     return event_slug
+
+def extract_team_slug(url: str) -> str:
+    return extract_event_slug(url)

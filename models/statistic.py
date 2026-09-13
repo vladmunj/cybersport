@@ -1,7 +1,8 @@
 from decimal import Decimal
-from sqlalchemy import ForeignKey, Numeric
+from sqlalchemy import ForeignKey, Numeric, func, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
+from datetime import datetime
 
 class Statistic(Base):
     __tablename__ = "statistics"
@@ -18,12 +19,19 @@ class Statistic(Base):
         nullable=False,
         index=True
     )
-    team: Mapped[str] = mapped_column(
-        nullable=False
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id"),
+        nullable=False,
+        index=True
     )
     rating: Mapped[Decimal] = mapped_column(
         Numeric(3, 2),
-        nullable=False
+        nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False,
     )
     match: Mapped["Match"] = relationship(
         back_populates="statistics"
