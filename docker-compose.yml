@@ -39,5 +39,21 @@ services:
       - "5432:5432"
     volumes:
       - cybersport_postgres_data:/var/lib/postgresql/data
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+      - "9002:9000"
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    volumes:
+      - cybersport_clickhouse_data:/var/lib/clickhouse
+    depends_on:
+      - postgres
 volumes:
   cybersport_postgres_data:
+  cybersport_clickhouse_data:
