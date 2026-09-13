@@ -40,7 +40,10 @@ def matches_prepare():
     }
     for match_item in matches_data:
         slug = match_item.pop('slug')
-        match_item['event_id'] = events_map.get(slug)
+        event_id = events_map.get(slug)
+        if event_id is None:
+            raise ValueError(f"Event {slug} not found")
+        match_item['event_id'] = event_id
     return matches_data
 
 def get_matches_by_external_ids(ids, select_fields):
