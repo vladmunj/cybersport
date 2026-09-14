@@ -1,7 +1,5 @@
 from typing import Any, Iterable
-
 import clickhouse_connect
-
 from app.config import (
     CLICKHOUSE_DB,
     CLICKHOUSE_HOST,
@@ -9,7 +7,6 @@ from app.config import (
     CLICKHOUSE_PORT,
     CLICKHOUSE_USER,
 )
-
 
 class ClickHouseClient:
     def __init__(self):

@@ -6,7 +6,7 @@ from models.player import Player
 from models.statistic import Statistic
 from models.team import Team
 from app.config import CLICKHOUSE_DB
-
+from services.sentry import Sentry
 
 TABLE = f"{CLICKHOUSE_DB}.mart_player_performance"
 COLUMNS = [
@@ -21,7 +21,6 @@ COLUMNS = [
     "rating",
 ]
 
-
 def _load_source_data():
     statistics = Db.query(Statistic).select([
         "match_id",
@@ -29,29 +28,24 @@ def _load_source_data():
         "team_id",
         "rating",
     ]).get()
-
     matches = Db.query(Match).select([
         "id",
         "external_id",
         "event_id",
         "date",
     ]).get()
-
     events = Db.query(Event).select([
         "id",
         "title",
     ]).get()
-
     players = Db.query(Player).select([
         "id",
         "nickname",
     ]).get()
-
     teams = Db.query(Team).select([
         "id",
         "name",
     ]).get()
-
     matches_map = {
         row.id: row
         for row in matches
@@ -68,26 +62,23 @@ def _load_source_data():
         row.id: row
         for row in teams
     }
-
     rows = []
     for statistic in statistics:
         match = matches_map.get(statistic.match_id)
         player = players_map.get(statistic.player_id)
         team = teams_map.get(statistic.team_id)
-
         if match is None:
             raise ValueError(f"Match not found: {statistic.match_id}")
         if player is None:
             raise ValueError(f"Player not found: {statistic.player_id}")
         if team is None:
             raise ValueError(f"Team not found: {statistic.team_id}")
-
         event = events_map.get(match.event_id)
         if event is None:
             raise ValueError(f"Event not found: {match.event_id}")
         if match.date is None:
-            raise ValueError(f"Match date is null: {match.id}")
-
+            Sentry.warning(f"Match date is null: {match.id}, pipeline: mart_player_performance")
+            continue
         rows.append({
             "match_id": match.id,
             "match_date": match.date,
@@ -99,18 +90,13 @@ def _load_source_data():
             "nickname": player.nickname,
             "rating": float(statistic.rating) if statistic.rating is not None else 0.0,
         })
-
     return rows
 
-
 def _get_existing_keys(client: ClickHouseClient, rows: list[dict]):
-    if not rows:
-        return set()
-
+    if not rows: return set()
     match_ids = sorted({row["match_id"] for row in rows})
     player_ids = sorted({row["player_id"] for row in rows})
     team_ids = sorted({row["team_id"] for row in rows})
-
     result = client.query(
         f"""
         SELECT match_id, team_id, player_id
@@ -125,7 +111,6 @@ def _get_existing_keys(client: ClickHouseClient, rows: list[dict]):
             "player_ids": player_ids,
         },
     )
-
     return {
         (row[0], row[1], row[2])
         for row in result.result_rows
@@ -137,11 +122,9 @@ def run_mart_player_performance_pipeline():
     if not source_rows:
         print("No statistics found. Nothing to load.")
         return
-
     client = ClickHouseClient()
     try:
         existing_keys = _get_existing_keys(client, source_rows)
-
         rows_to_insert = [
             [row[column] for column in COLUMNS]
             for row in source_rows
@@ -151,11 +134,9 @@ def run_mart_player_performance_pipeline():
                 row["player_id"],
             ) not in existing_keys
         ]
-
         if not rows_to_insert:
             print("mart_player_performance is already up to date.")
             return
-
         client.insert(
             TABLE,
             rows_to_insert,
@@ -169,5 +150,4 @@ def run_mart_player_performance_pipeline():
         client.close()
 
 
-if __name__ == "__main__":
-    run_mart_player_performance_pipeline()
+if __name__ == "__main__": run_mart_player_performance_pipeline()
