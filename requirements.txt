@@ -6,4 +6,5 @@ sentry-sdk
 SQLAlchemy
 alembic
 psycopg[binary]
+psycopg2-binary
 clickhouse_connect

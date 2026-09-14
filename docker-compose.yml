@@ -1,3 +1,23 @@
+x-airflow-common:
+  &airflow-common
+  build:
+    context: .
+    dockerfile: docker/airflow/Dockerfile
+  environment:
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: >-
+      postgresql+psycopg2://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@${AIRFLOW_POSTGRES_HOST}:${AIRFLOW_POSTGRES_PORT}/${AIRFLOW_POSTGRES_DB}
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: >-
+      ${AIRFLOW_ADMIN_USERNAME}:admin
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: >-
+      /opt/airflow/config/simple_auth_manager_passwords.json
+    PYTHONPATH: /opt/airflow/project
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - .:/opt/airflow/project
 services:
   minio:
     image: minio/minio
@@ -22,8 +42,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - minio
-      - postgres
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
     command: ["sleep", "infinity"]
   postgres:
     image: postgres:17-alpine
@@ -39,6 +61,15 @@ services:
       - "5432:5432"
     volumes:
       - cybersport_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     container_name: clickhouse
@@ -54,6 +85,104 @@ services:
       - cybersport_clickhouse_data:/var/lib/clickhouse
     depends_on:
       - postgres
+  airflow-postgres:
+    image: postgres:17-alpine
+    container_name: airflow-postgres
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+      PGTZ: UTC
+      POSTGRES_DB: ${AIRFLOW_POSTGRES_DB}
+      POSTGRES_USER: ${AIRFLOW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD}
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${AIRFLOW_POSTGRES_USER} -d ${AIRFLOW_POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        mkdir -p /opt/airflow/config
+        cat > /opt/airflow/config/simple_auth_manager_passwords.json <<EOF
+        {
+          "${AIRFLOW_ADMIN_USERNAME}": "${AIRFLOW_ADMIN_PASSWORD}"
+        }
+        EOF
+        airflow db migrate
+  airflow-api-server:
+    <<: *airflow-common
+    container_name: airflow-api-server
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_started
+      clickhouse:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    command:
+      - airflow
+      - api-server
+      - --port
+      - "8080"
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command:
+      - airflow
+      - scheduler
+  airflow-dag-processor:
+    <<: *airflow-common
+    container_name: airflow-dag-processor
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command:
+      - airflow
+      - dag-processor
+  airflow-triggerer:
+    <<: *airflow-common
+    container_name: airflow-triggerer
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    command:
+      - airflow
+      - triggerer
 volumes:
   cybersport_postgres_data:
   cybersport_clickhouse_data:
+  airflow_postgres_data:
