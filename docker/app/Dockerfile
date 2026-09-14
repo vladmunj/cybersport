@@ -5,7 +5,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y tzdata && \
     ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
-    echo Etc/UTC > /etc/timezone
+    echo Etc/UTC > /etc/timezone && \
+    rm -rf /var/lib/apt/lists/*
 ENV TZ=Etc/UTC
 COPY app ./app
 COPY services ./services

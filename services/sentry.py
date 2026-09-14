@@ -6,14 +6,9 @@ from datetime import datetime
 class Sentry:
     _initialized = False
 
-    @staticmethod
-    def __init(cls):
+    @classmethod
+    def init(cls):
         if cls._initialized: return
-        Sentry.init_manual()
-        cls._initialized = True
-
-    @staticmethod
-    def init_manual():
         sentry_sdk.init(
             dsn=SENTRY_DSN,
             environment=SENTRY_ENVIRONMENT,
@@ -22,10 +17,15 @@ class Sentry:
         )
         run_date = datetime.now().strftime("%Y-%m-%d")
         sentry_sdk.set_tag("run_date", run_date)
+        cls._initialized = True
 
-    @staticmethod
+    @classmethod
+    def init_manual(cls):
+        cls.init()
+
+    @classmethod
     def warning(cls, message: str, context: dict | None = None, tags: dict | None = None):
-        cls.__init()
+        cls.init()
         cls._capture(
             message= message,
             level= "warning",
@@ -33,9 +33,9 @@ class Sentry:
             tags= tags
         )
 
-    @staticmethod
+    @classmethod
     def error(cls, message: str, context: dict | None = None, tags: dict | None = None):
-        cls.__init()
+        cls.init()
         cls._capture(
             message=message,
             level="error",
