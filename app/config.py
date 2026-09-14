@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from services.json_transform import json_load_from_file
+from services.path import root_path
 
 load_dotenv()
 
@@ -29,7 +30,7 @@ POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
 
-MAP_POOL_LIST = json_load_from_file("./app/config/map_pool.json")
+MAP_POOL_LIST = json_load_from_file(str(root_path()/"app"/"config"/"map_pool.json"))
 
 CLICKHOUSE_HOST= os.getenv('CLICKHOUSE_HOST')
 CLICKHOUSE_PORT= int(os.getenv('CLICKHOUSE_PORT', 8123))
