@@ -1,9 +1,6 @@
 import datetime
 import traceback
-import sentry_sdk
-from app.config import (
-    SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_TRACES_SAMPLE_RATE)
-
+from services.sentry import Sentry
 from app.scraper.events import scrape_events
 from app.scraper.matches import scrape_matches
 from app.scraper.statistics import scrape_statistics
@@ -17,18 +14,9 @@ def alert(error, frame):
           f'function: {frame.name}'
     )
 
-def __sentry_init():
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        environment=SENTRY_ENVIRONMENT,
-        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE
-    )
-    snapshot_date = datetime.datetime.now().strftime('%Y-%m-%d')
-    sentry_sdk.set_tag('snapshot_date', snapshot_date)
-
 def main():
     __logger = Logger()
-    __sentry_init()
+    Sentry.init_manual()
     try:
         scrape_events()
         scrape_matches()

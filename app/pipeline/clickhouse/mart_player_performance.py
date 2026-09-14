@@ -7,6 +7,7 @@ from models.statistic import Statistic
 from models.team import Team
 from app.config import CLICKHOUSE_DB
 from services.sentry import Sentry
+from helpers.transform import row_to_dict
 
 TABLE = f"{CLICKHOUSE_DB}.mart_player_performance"
 COLUMNS = [
@@ -77,7 +78,14 @@ def _load_source_data():
         if event is None:
             raise ValueError(f"Event not found: {match.event_id}")
         if match.date is None:
-            Sentry.warning(f"Match date is null: {match.id}, pipeline: mart_player_performance")
+            Sentry.warning(
+                message="Match skipped: date is missing",
+                context=row_to_dict(match, exclude={'date'}),
+                tags={
+                    "pipeline": "mart_player_performance",
+                    "reason": "missing_match_date",
+                },
+            )
             continue
         rows.append({
             "match_id": match.id,
