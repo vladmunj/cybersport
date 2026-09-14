@@ -1,4 +1,3 @@
-import datetime
 import traceback
 from services.sentry import Sentry
 from app.scraper.events import scrape_events

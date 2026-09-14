@@ -42,7 +42,8 @@ class Sentry:
             message: str,
             context: dict | None = None,
             tags: dict | None = None,
-            extra: dict | None = None
+            extra: dict | None = None,
+            exception: Exception | None = None,
     ):
         cls.init()
         cls._capture(
@@ -50,7 +51,8 @@ class Sentry:
             level= "error",
             context= context,
             tags= tags,
-            extra= extra
+            extra= extra,
+            exception= exception
         )
 
     @staticmethod
@@ -60,6 +62,7 @@ class Sentry:
             context: dict | None = None,
             tags: dict | None = None,
             extra: dict | None = None,
+            exception: Exception | None = None,
     ):
         with sentry_sdk.push_scope() as scope:
             if context:
@@ -71,6 +74,7 @@ class Sentry:
             if extra:
                 for key, value in extra.items():
                     scope.set_extra(key, value)
+            if exception: scope.capture_exception(exception)
             sentry_sdk.capture_message(
                 message,
                 level= level,

@@ -28,7 +28,7 @@ class Logger:
             ]
         )
 
-    def write(self, message):
+    def info(self, message):
         self.logger.info(message)
 
     def error(self, message):
