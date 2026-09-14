@@ -1,24 +1,15 @@
 import importlib
 import os
 import re
-import clickhouse_connect
-from app.config import (
-    CLICKHOUSE_DB, CLICKHOUSE_HOST, CLICKHOUSE_PORT,
-    CLICKHOUSE_USER, CLICKHOUSE_PASSWORD
-)
+from services.clickhouse import ClickHouseClient
+from app.config import CLICKHOUSE_DB
 
 MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), 'migrations/versions')
 
 class MigrationRunner:
 
     def __init__(self):
-        self.client = clickhouse_connect.get_client(
-            host= CLICKHOUSE_HOST,
-            port= CLICKHOUSE_PORT,
-            username= CLICKHOUSE_USER,
-            password= CLICKHOUSE_PASSWORD,
-            database= CLICKHOUSE_DB
-        )
+        self.client = ClickHouseClient()
         self._create_migrations_table()
 
     def _create_migrations_table(self):
