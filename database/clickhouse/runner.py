@@ -22,9 +22,9 @@ class MigrationRunner:
         self._create_migrations_table()
 
     def _create_migrations_table(self):
-        self.client.command("""
+        self.client.command(f"""
             CREATE TABLE IF NOT EXISTS
-            cybersport.schema_migrations
+            {CLICKHOUSE_DB}.schema_migrations
             (
                 version String,
                 applied_at DateTime DEFAULT now()
@@ -34,9 +34,9 @@ class MigrationRunner:
         """)
 
     def applied(self):
-        result = self.client.query("""
+        result = self.client.query(f"""
             SELECT version
-            FROM cybersport.schema_migrations
+            FROM {CLICKHOUSE_DB}.schema_migrations
         """)
         return {
             row[0]
@@ -82,11 +82,14 @@ class MigrationRunner:
             migration.upgrade(self.client)
             self.client.command(
                 """
-                INSERT INTO cybersport.schema_migrations
+                INSERT INTO {database:Identifier}.schema_migrations
                 (version)
-                VALUES
+                VALUES ({version:String})
                 """,
-                parameters=[(version,)]
+                parameters={
+                    'version': version,
+                    'database': CLICKHOUSE_DB
+                }
             )
             print(f'Migration {version} applied')
 
@@ -113,7 +116,7 @@ class MigrationRunner:
         )
         self.client.command(
             f"""
-            ALTER TABLE cybersport.schema_migrations
+            ALTER TABLE {CLICKHOUSE_DB}.schema_migrations
             DELETE WHERE version = '{version}'
             """
         )
