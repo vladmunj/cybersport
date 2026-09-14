@@ -1,6 +1,10 @@
 from datetime import datetime
-from airflow.sdk import DAG, task
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 from app.pipeline.main import run_pipeline
+
+def run_pipeline_task(pipeline_name: str) -> None:
+    run_pipeline(pipeline_name)
 
 with DAG(
     dag_id="cybersport_etl",
@@ -10,63 +14,68 @@ with DAG(
     catchup=False,
     max_active_runs=1,
     tags=["cybersport", "etl"],
-):
-    @task
-    def scraper_events():
-        run_pipeline("scraper.events")
-    @task
-    def scraper_matches():
-        run_pipeline("scraper.matches")
-    @task
-    def scraper_statistics():
-        run_pipeline("scraper.statistics")
-    @task
-    def postgres_events():
-        run_pipeline("postgres.events")
-    @task
-    def postgres_matches():
-        run_pipeline("postgres.matches")
-    @task
-    def postgres_matchmap():
-        run_pipeline("postgres.matchmap")
-    @task
-    def postgres_statistics():
-        run_pipeline("postgres.statistics")
-    @task
-    def mart_player_performance():
-        run_pipeline("clickhouse.mart_player_performance")
-    @task
-    def mart_match_summary():
-        run_pipeline("clickhouse.mart_match_summary")
-    @task
-    def data_quality():
-        run_pipeline("data_quality.clickhouse")
+) as dag:
+    scraper_events = PythonOperator(
+        task_id="scraper_events",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "scraper.events"},
+    )
+    scraper_matches = PythonOperator(
+        task_id="scraper_matches",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "scraper.matches"},
+    )
+    scraper_statistics = PythonOperator(
+        task_id="scraper_statistics",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "scraper.statistics"},
+    )
+    postgres_events = PythonOperator(
+        task_id="postgres_events",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "postgres.events"},
+    )
+    postgres_matches = PythonOperator(
+        task_id="postgres_matches",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "postgres.matches"},
+    )
+    postgres_matchmap = PythonOperator(
+        task_id="postgres_matchmap",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "postgres.matchmap"},
+    )
+    postgres_statistics = PythonOperator(
+        task_id="postgres_statistics",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "postgres.statistics"},
+    )
+    mart_player_performance = PythonOperator(
+        task_id="mart_player_performance",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "clickhouse.mart_player_performance"},
+    )
+    mart_match_summary = PythonOperator(
+        task_id="mart_match_summary",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "clickhouse.mart_match_summary"},
+    )
+    data_quality = PythonOperator(
+        task_id="data_quality",
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "data_quality.clickhouse"},
+    )
 
-    # Dependencies
-    events = scraper_events()
-    matches = scraper_matches()
-    statistics = scraper_statistics()
+    scraper_events >> postgres_events
+    scraper_matches >> postgres_matches
+    scraper_matches >> postgres_matchmap
+    scraper_statistics >> postgres_statistics
 
-    pg_events = postgres_events()
-    pg_matches = postgres_matches()
-    pg_matchmap = postgres_matchmap()
-    pg_statistics = postgres_statistics()
+    postgres_events >> postgres_matches
+    postgres_matches >> postgres_matchmap
+    postgres_matchmap >> postgres_statistics
 
-    player_mart = mart_player_performance()
-    match_mart = mart_match_summary()
+    postgres_statistics >> mart_player_performance
+    postgres_statistics >> mart_match_summary
 
-    dq = data_quality()
-
-    events >> pg_events
-    matches >> pg_matches
-    matches >> pg_matchmap
-    statistics >> pg_statistics
-
-    pg_events >> pg_matches
-    pg_matches >> pg_matchmap
-    pg_matchmap >> pg_statistics
-
-    pg_statistics >> player_mart
-    pg_statistics >> match_mart
-
-    [player_mart, match_mart] >> dq
+    [mart_player_performance, mart_match_summary] >> data_quality
