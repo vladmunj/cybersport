@@ -111,6 +111,7 @@ services:
     <<: *airflow-common
     container_name: airflow-init
     restart: "no"
+    user: root
     depends_on:
       airflow-postgres:
         condition: service_healthy
