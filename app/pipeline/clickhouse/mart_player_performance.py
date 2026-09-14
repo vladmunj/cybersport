@@ -64,6 +64,7 @@ def _load_source_data():
         for row in teams
     }
     rows = []
+    skipped_matches = []
     for statistic in statistics:
         match = matches_map.get(statistic.match_id)
         player = players_map.get(statistic.player_id)
@@ -78,14 +79,7 @@ def _load_source_data():
         if event is None:
             raise ValueError(f"Event not found: {match.event_id}")
         if match.date is None:
-            Sentry.warning(
-                message="Match skipped: date is missing",
-                context=row_to_dict(match, exclude={'date'}),
-                tags={
-                    "pipeline": "mart_player_performance",
-                    "reason": "missing_match_date",
-                },
-            )
+            skipped_matches.append(row_to_dict(match, exclude={'date'}))
             continue
         rows.append({
             "match_id": match.id,
@@ -98,6 +92,18 @@ def _load_source_data():
             "nickname": player.nickname,
             "rating": float(statistic.rating) if statistic.rating is not None else 0.0,
         })
+    if skipped_matches:
+        Sentry.warning(
+            message="Match skipped: date is missing",
+            extra={
+                'skipped_matches_count': len(skipped_matches),
+                'skipped_matches': skipped_matches,
+            },
+            tags={
+                "pipeline": "mart_player_performance",
+                "reason": "missing_match_date",
+            },
+        )
     return rows
 
 def _get_existing_keys(client: ClickHouseClient, rows: list[dict]):

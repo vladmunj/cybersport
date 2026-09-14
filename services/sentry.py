@@ -24,23 +24,37 @@ class Sentry:
         cls.init()
 
     @classmethod
-    def warning(cls, message: str, context: dict | None = None, tags: dict | None = None):
+    def warning(
+            cls,
+            message: str,
+            context: dict | None = None,
+            tags: dict | None = None,
+            extra: dict | None = None
+    ):
         cls.init()
         cls._capture(
             message= message,
             level= "warning",
             context= context,
-            tags= tags
+            tags= tags,
+            extra= extra
         )
 
     @classmethod
-    def error(cls, message: str, context: dict | None = None, tags: dict | None = None):
+    def error(
+            cls,
+            message: str,
+            context: dict | None = None,
+            tags: dict | None = None,
+            extra: dict | None = None
+    ):
         cls.init()
         cls._capture(
-            message=message,
-            level="error",
-            context=context,
-            tags=tags
+            message= message,
+            level= "error",
+            context= context,
+            tags= tags,
+            extra= extra
         )
 
     @staticmethod
@@ -48,7 +62,8 @@ class Sentry:
             message: str,
             level: Literal["fatal", "critical", "error", "warning", "info", "debug"] | None,
             context: dict | None = None,
-            tags: dict | None = None
+            tags: dict | None = None,
+            extra: dict | None = None,
     ):
         with sentry_sdk.push_scope() as scope:
             if context:
@@ -57,6 +72,9 @@ class Sentry:
             if tags:
                 for key, value in tags.items():
                     scope.set_tag(key, value)
+            if extra:
+                for key, value in extra.items():
+                    scope.set_extra(key, value)
             sentry_sdk.capture_message(
                 message,
                 level= level,
