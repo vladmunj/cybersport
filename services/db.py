@@ -6,7 +6,7 @@ from app.config import (
     POSTGRES_HOST,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB
 )
 from typing import Any, Type
-from exceptions.minio import MinioException
+from exceptions.db import DatabaseException
 
 class Query:
     def __init__(self, model: Type[Any]):
@@ -43,7 +43,7 @@ class Query:
         except ValueError:
             raise ValueError(f"Unsupported operator: {operator}")
         except Exception as e:
-            raise MinioException(e) from e
+            raise DatabaseException(e) from e
 
     def where_date(self, field: str, value: Any):
         column = getattr(self.model, field)
@@ -53,7 +53,7 @@ class Query:
             self._query = self._query.where(func.date(column) == value)
             return self
         except Exception as e:
-            raise MinioException(e) from e
+            raise DatabaseException(e) from e
 
     def where_in(self, field: str, values: list[Any]):
         column = getattr(self.model, field)
@@ -61,7 +61,7 @@ class Query:
             self._query = self._query.where(column.in_(values))
             return self
         except Exception as e:
-            raise MinioException(e) from e
+            raise DatabaseException(e) from e
 
     def where_not_in(self, field: str, values: list[Any]):
         column = getattr(self.model, field)
@@ -69,7 +69,7 @@ class Query:
             self._query = self._query.where(~column.in_(values))
             return self
         except Exception as e:
-            raise MinioException(e) from e
+            raise DatabaseException(e) from e
 
     def get(self):
         session = Db._get_session()
