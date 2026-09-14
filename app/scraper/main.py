@@ -16,7 +16,7 @@ def alert(error, frame):
 
 def main():
     __logger = Logger()
-    Sentry.init_manual()
+    Sentry.init()
     try:
         scrape_events()
         scrape_matches()

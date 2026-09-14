@@ -20,10 +20,6 @@ class Sentry:
         cls._initialized = True
 
     @classmethod
-    def init_manual(cls):
-        cls.init()
-
-    @classmethod
     def warning(
             cls,
             message: str,
