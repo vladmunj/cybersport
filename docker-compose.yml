@@ -8,7 +8,7 @@ x-airflow-common:
       postgresql+psycopg2://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@${AIRFLOW_POSTGRES_HOST}:${AIRFLOW_POSTGRES_PORT}/${AIRFLOW_POSTGRES_DB}
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
     AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
     AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: >-
       ${AIRFLOW_ADMIN_USERNAME}:admin
@@ -18,6 +18,7 @@ x-airflow-common:
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - .:/opt/airflow/project
+    - airflow_config:/opt/airflow/config
 services:
   minio:
     image: minio/minio
@@ -109,6 +110,7 @@ services:
   airflow-init:
     <<: *airflow-common
     container_name: airflow-init
+    restart: "no"
     depends_on:
       airflow-postgres:
         condition: service_healthy
@@ -123,7 +125,11 @@ services:
           "${AIRFLOW_ADMIN_USERNAME}": "${AIRFLOW_ADMIN_PASSWORD}"
         }
         EOF
-        airflow db migrate
+        chown airflow:root \
+          /opt/airflow/config/simple_auth_manager_passwords.json
+        chmod 600 \
+          /opt/airflow/config/simple_auth_manager_passwords.json
+        su airflow -c "airflow db migrate"
   airflow-api-server:
     <<: *airflow-common
     container_name: airflow-api-server
@@ -186,3 +192,4 @@ volumes:
   cybersport_postgres_data:
   cybersport_clickhouse_data:
   airflow_postgres_data:
+  airflow_config:
