@@ -50,8 +50,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
     volumes:
-      - ./docker/minio/init.sh:/init.sh:ro
-    entrypoint: [ "/bin/sh", "/init.sh" ]
+      - ./scripts/minio_bucket.sh:/minio_bucket.sh:ro
+    entrypoint: [ "/bin/sh", "/minio_bucket.sh" ]
   app:
     build:
       context: .

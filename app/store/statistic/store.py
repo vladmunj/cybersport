@@ -7,7 +7,6 @@ from app.store.player.store import player_store
 def statistics_store(data):
     teams_map = {}
     players_map = {}
-    matches_map = {}
     for team_data in data['teams']:
         team = team_store(team_data)
         teams_map[team.slug] = team.id
