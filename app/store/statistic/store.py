@@ -36,10 +36,10 @@ def statistics_store(data):
     for item in data['statistics']:
         match_id = matches_map.get(item['match_external_id'])
         team_id = teams_map.get(item['team_slug'])
-        player_id = players_map.get(item['player_nickname'], team_id)
+        player_id = players_map.get((item['player_nickname'], team_id))
         if match_id is None: raise ValueError(f"Match not found: {item['match_external_id']}")
-        if player_id is None: raise ValueError(f"Player not found: {item['player_nickname']}")
         if team_id is None: raise ValueError(f"Team not found: {item['team_slug']}")
+        if player_id is None: raise ValueError(f"Player not found: {item['player_nickname']}")
         statistics.append({
             'match_id': match_id,
             'player_id': player_id,
