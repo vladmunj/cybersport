@@ -1,11 +1,19 @@
 from decimal import Decimal
-from sqlalchemy import ForeignKey, Numeric, func, DateTime
+from sqlalchemy import ForeignKey, Numeric, func, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
 from datetime import datetime
 
 class Statistic(Base):
     __tablename__ = "statistics"
+    __table_args__ = (
+        UniqueConstraint(
+            "match_id",
+            "player_id",
+            "team_id",
+            name="uq_statistics_match_player_team",
+        ),
+    )
     id: Mapped[int] = mapped_column(
         primary_key=True
     )

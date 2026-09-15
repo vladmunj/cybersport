@@ -22,7 +22,7 @@ def statistics_store(data):
             'fullname': player_data['fullname'],
             'team_id': team_id,
         })
-        players_map[player.nickname] = player.id
+        players_map[(player.nickname, team_id)] = player.id
     matches = (Db.query(Match)
                .select(['id','external_id'])
                .where_in('external_id', data['match_external_ids'])
@@ -35,8 +35,8 @@ def statistics_store(data):
     statistics = []
     for item in data['statistics']:
         match_id = matches_map.get(item['match_external_id'])
-        player_id = players_map.get(item['player_nickname'])
         team_id = teams_map.get(item['team_slug'])
+        player_id = players_map.get(item['player_nickname'], team_id)
         if match_id is None: raise ValueError(f"Match not found: {item['match_external_id']}")
         if player_id is None: raise ValueError(f"Player not found: {item['player_nickname']}")
         if team_id is None: raise ValueError(f"Team not found: {item['team_slug']}")
