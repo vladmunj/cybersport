@@ -1,5 +1,5 @@
-FROM apache/airflow:latest
+FROM apache/airflow:3.3.1
 USER root
 COPY requirements.txt /requirements.txt
 USER airflow
-RUN pip install --no-cache-dir -r /requirements.txt
+RUN python -m pip install --no-cache-dir -r /requirements.txt

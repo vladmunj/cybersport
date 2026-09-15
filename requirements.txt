@@ -8,5 +8,4 @@ alembic
 psycopg[binary]
 psycopg2-binary
 clickhouse_connect
-apache-airflow-providers-standard
 apache-airflow-providers-amazon

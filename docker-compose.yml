@@ -6,9 +6,11 @@ x-airflow-common:
   environment:
     AIRFLOW__API__SECRET_KEY: ${AIRFLOW_SECRET_KEY}
     AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET}
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: >-
       postgresql+psycopg2://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@${AIRFLOW_POSTGRES_HOST}:${AIRFLOW_POSTGRES_PORT}/${AIRFLOW_POSTGRES_DB}
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
@@ -20,6 +22,7 @@ x-airflow-common:
     AIRFLOW__LOGGING__REMOTE_LOGGING: "True"
     AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER: "s3://airflow-logs/logs"
     AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID: "minio_s3_conn"
+    AIRFLOW__CORE__PARALLELISM: 2
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - .:/opt/airflow/project
