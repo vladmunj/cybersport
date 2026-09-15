@@ -8,6 +8,7 @@ from app.config import (
 )
 from typing import Any, Type
 from exceptions.db import DatabaseException
+from services.sentry import Sentry
 
 class Query:
     def __init__(self, model: Type[Any]):
@@ -238,6 +239,31 @@ class Db:
                     f"Keys {missing_keys} not found in data "
                     f"for model '{model.__name__}'"
                 )
+        unique_records = {}
+        duplicates = []
+        for data in records:
+            record_key = tuple(
+                data[key]
+                for key in keys
+            )
+            if record_key in unique_records:
+                duplicates.append({
+                    "keys": dict(zip(keys, record_key)),
+                    "record": data,
+                })
+                continue
+            unique_records[record_key] = data
+        records = list(unique_records.values())
+        if duplicates:
+            Sentry.warning(
+                message = f"Duplicate records skipped during batch upsert: {model.__name__}",
+                extra = {
+                    "model": model.__name__,
+                    "unique_keys": keys,
+                    "duplicates_count": len(duplicates),
+                    "duplicates": duplicates,
+                }
+            )
         session = Db._get_session()
         try:
             stmt = insert(model).values(records)
