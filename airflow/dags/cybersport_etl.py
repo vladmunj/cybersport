@@ -17,21 +17,18 @@ with DAG(
 ) as dag:
     scraper_events = PythonOperator(
         task_id="scraper_events",
-        python_callable=lambda: print("EVENTS TEST"),
-        # python_callable=run_pipeline_task,
-        # op_kwargs={"pipeline_name": "scraper.events"},
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "scraper.events"},
     )
     scraper_matches = PythonOperator(
         task_id="scraper_matches",
-        python_callable=lambda: print("MATCHES TEST"),
-        # python_callable=run_pipeline_task,
-        # op_kwargs={"pipeline_name": "scraper.matches"},
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "scraper.matches"},
     )
     scraper_statistics = PythonOperator(
         task_id="scraper_statistics",
-        python_callable=lambda: print("STATISTICS TEST"),
-        # python_callable=run_pipeline_task,
-        # op_kwargs={"pipeline_name": "scraper.statistics"},
+        python_callable=run_pipeline_task,
+        op_kwargs={"pipeline_name": "scraper.statistics"},
     )
     postgres_events = PythonOperator(
         task_id="postgres_events",
