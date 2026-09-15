@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
 from models.maps import Map
@@ -6,6 +6,13 @@ from models.maps import Map
 
 class MatchMap(Base):
     __tablename__ = "match_maps"
+    __table_args__ = (
+        UniqueConstraint(
+            "match_id",
+            "map_id",
+            name="uq_match_maps_match_map",
+        ),
+    )
     id: Mapped[int] = mapped_column(
         primary_key=True
     )
