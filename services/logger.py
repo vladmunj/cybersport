@@ -9,22 +9,11 @@ class Logger:
         self.__setup()
         self.logger = logging.getLogger()
 
-    def __logFileName(self):
-        path = root_path() / "logs"
-        path.mkdir(parents=True, exist_ok=True)
-        filename = datetime.now().strftime('%Y%m%d') + '.log'
-        return path / filename
-
     def __setup(self):
-        log_file_name = self.__logFileName()
         logging.basicConfig(
             format='%(asctime)s | %(name)s | %(levelname)s | %(message)s',
             handlers=[
                 logging.StreamHandler(sys.stdout),
-                logging.FileHandler(
-                    f'{log_file_name}',
-                    encoding='utf-8'
-                )
             ]
         )
 
