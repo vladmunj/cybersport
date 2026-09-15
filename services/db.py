@@ -248,8 +248,8 @@ class Db:
             )
             if record_key in unique_records:
                 duplicates.append({
-                    "keys": dict(zip(keys, record_key)),
-                    "record": data,
+                    key: data[key]
+                    for key in keys
                 })
                 continue
             unique_records[record_key] = data
