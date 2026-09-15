@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import create_engine, select, func
 from sqlalchemy.engine import URL
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import sessionmaker
 from app.config import (
     POSTGRES_HOST,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB
@@ -225,31 +226,43 @@ class Db:
             model: Type[Any],
             records: list[dict[str, Any]],
             keys: list[str]
-    ) -> list[Any]:
-        session = Db._get_session()
-        result = []
-        try:
-            for data in records:
-                missing_keys = [
-                    key for key in keys
-                    if key not in data
-                ]
-                if missing_keys:
-                    raise ValueError(
-                        f"Keys {missing_keys} not found in data "
-                        f"for model '{model.__name__}'"
-                    )
-                instance = Db._instance_by_keys(
-                    session,
-                    model,
-                    data,
-                    keys
+    ) -> None:
+        if not records: return
+        for data in records:
+            missing_keys = [
+                key for key in keys
+                if key not in data
+            ]
+            if missing_keys:
+                raise ValueError(
+                    f"Keys {missing_keys} not found in data "
+                    f"for model '{model.__name__}'"
                 )
-                result.append(instance)
+        session = Db._get_session()
+        try:
+            stmt = insert(model).values(records)
+            update_values = {
+                field: getattr(stmt.excluded, field)
+                for field in records[0]
+                if field not in keys
+            }
+            if update_values:
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=[
+                        getattr(model, key)
+                        for key in keys
+                    ],
+                    set_=update_values,
+                )
+            else:
+                stmt = stmt.on_conflict_do_nothing(
+                    index_elements=[
+                        getattr(model, key)
+                        for key in keys
+                    ],
+                )
+            session.execute(stmt)
             session.commit()
-            for instance in result:
-                session.refresh(instance)
-            return result
         except Exception:
             session.rollback()
             raise
