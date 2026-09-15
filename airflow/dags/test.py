@@ -1,6 +1,6 @@
-from airflow import DAG
-from airflow.providers.standard.operators.python import PythonOperator
 from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 
 
 def airflow_test():
