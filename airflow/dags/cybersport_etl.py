@@ -67,6 +67,7 @@ with DAG(
     )
 
     scraper_events >> postgres_events
+    scraper_matches >> scraper_statistics
     scraper_matches >> postgres_matches
     scraper_matches >> postgres_matchmap
     scraper_statistics >> postgres_statistics
